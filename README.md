@@ -7,7 +7,7 @@ Each convelution block consist of a sequence of:
 <li> 1 batch normalization layer </li>
 <li> relu activation </li>
 <li> 1 dropout layer </li>
-See [Model.py](./Model.py)
+See [./Model.py](https://github.com/pericles01/Pytorch_binary_classifier/blob/main/Model.py)
 
 # Installation
 - Install [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) on your machine if you don't have it
@@ -39,7 +39,7 @@ dataset/
                 img_4.jpg
                 ...
 ```
-Set the input and test datasets' path in [./main.py]
+Set the input and test datasets' path in [./main.py](https://github.com/pericles01/Pytorch_binary_classifier/blob/main/main.py)
 # Run
 - for windows
     ```bash
