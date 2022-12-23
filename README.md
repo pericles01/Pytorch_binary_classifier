@@ -1,12 +1,14 @@
 # Pytorch_binary_classifier
 
 <p> Pytorch CNN project for binary classification task. </p>
-<p> The CNN is built from scratch with 3 convelutions block and 2 fully connected layer. <p>
+<p> The CNN is built from scratch with 3 convelution blocks and 2 fully connected layers. <p>
 Each convelution block consist of a sequence of:
 <li> 1 convelution layer </li>
 <li> 1 batch normalization layer </li>
 <li> relu activation </li>
 <li> 1 dropout layer </li>
+
+
 See [./Model.py](https://github.com/pericles01/Pytorch_binary_classifier/blob/main/Model.py)
 
 # Installation
