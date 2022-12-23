@@ -4,7 +4,7 @@ import torch
 class Binary_Classifier(nn.Module):
     # 3 
 
-    def __init__(self, input, num_classes):
+    def __init__(self, input):
         super(Binary_Classifier, self).__init__()
         
        
@@ -14,8 +14,8 @@ class Binary_Classifier(nn.Module):
         self.block3 = self.conv_block(c_in=128, c_out=64, dropout=0.25, kernel_size=3)
         #self.block4 = nn.Conv2d(in_channels=64, out_channels=num_classes, kernel_size=56)
         self.maxpool = nn.MaxPool2d(kernel_size=2)
-        self.firstlayer = nn.Linear(in_features=64*3*3, out_features=64)
-        self.lastlayer = nn.Linear(in_features=64, out_features=num_classes)
+        self.firstlayer = nn.Linear(in_features=179776, out_features=16) #44944
+        self.lastlayer = nn.Linear(in_features=16, out_features=1)
 
     def forward(self, x):
         x = self.block1(x)
@@ -23,12 +23,11 @@ class Binary_Classifier(nn.Module):
         x = self.block2(x)
         x = self.block3(x)
         x = self.maxpool(x)
-        x = torch.flatten(x, 1)
+        x = torch.flatten(x,1)
         x = self.firstlayer(x)
         x = self.lastlayer(x)
-        x = nn.Sigmoid(x)
 
-        return x
+        return torch.sigmoid(x)
 
     def conv_block(self, c_in, c_out, dropout,  **kwargs):
         seq_block = nn.Sequential(
