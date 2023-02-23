@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import time
 from torchvision import datasets, transforms
+from torchmetrics.classification import BinaryConfusionMatrix
 import torch.optim as optim
 from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.preprocessing import MultiLabelBinarizer
@@ -9,6 +10,7 @@ from Model import Binary_Classifier
 import os
 import logging
 import plot
+import numpy as np
 
 def setup_dataset(traindir:str, validationdir:str, testdir:str=None, dim=224, batch: int=16) -> tuple:
     class_names = sorted(os.listdir(traindir))
@@ -122,9 +124,9 @@ if __name__ == '__main__':
                             level=logging.DEBUG)
                             
     # kaggle kernels output gauravduttakiit/metal-defect-classification-using-mobilenet-v2 -p /path/to/dest
-    traindir = "../dataset/casting_data/train"
-    validdir = "../dataset/casting_data/valid"
-    testdir = "../dataset/casting_512x512" # if None, testset = validset
+    traindir = "../casting_data/train"
+    validdir = "../casting_data/valid"
+    testdir = "../casting_512x512" # if None, testset = validset
  
     # Hyperparameters
     param_args = {'num_classes': 2,    
@@ -135,9 +137,10 @@ if __name__ == '__main__':
 
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     logging.info("Setup Dataset")
-    train_loader, valid_loader, test_loader, labels = setup_dataset(traindir, validdir, testdir, param_args['dim'],param_args['Batch_Size'])
+    train_loader, valid_loader, test_loader, label = setup_dataset(traindir, validdir, testdir, param_args['dim'],param_args['Batch_Size'])
 
     model = Binary_Classifier(input=3).to(device)
+    # model = torch.load("./binary_model.pth")
     print(model)
     optimizer = optim.Adam(model.parameters(), lr=param_args['Learning_Rate']) 
     loss = nn.BCELoss() # BinaryCrossEntropy Loss #nn.BCEWithLogitsLoss
@@ -165,27 +168,17 @@ if __name__ == '__main__':
     logging.info("training duration: {} sec -> {}h:{}min:{}sec".format(elapsed_time, int(hours),int(minutes),int(seconds)))
 
     # confusion matrix
-    y_pred = []
-    y_true = []
+    bcm = BinaryConfusionMatrix()
     model.eval()
     with torch.no_grad():
         for xb_test,yb_test  in test_loader:
             y_test_pred = model(xb_test.to(device))
-            y_pred_tag = torch.round(y_test_pred)
-            y_pred.append(y_pred_tag.detach().numpy())
-            y_true.append(yb_test.numpy())
-    y_pred = [a.squeeze().tolist() for a in y_pred]
-    y_true = [a.squeeze().tolist() for a in y_true]
-    #fit the tensor format
-    # y_pred = MultiLabelBinarizer().fit_transform(y_pred)
-    # y_true = MultiLabelBinarizer().fit_transform(y_true)
-    print(f"y_pred: {y_pred}, lenght: {len(y_pred)}")
-    print(f"y_true: {y_true}, lenght: {len(y_true)}")
-    cf_matrix = confusion_matrix(y_true, y_pred)
-    plot.save_confusion_matrix(cf_matrix, labels)
-    report = classification_report(y_true, y_pred, output_dict=True)
-    report['training duration'] = "{}:{}:{:05.2f}".format(int(hours),int(minutes),seconds)
-    plot.save_classification_report(report)
+            y_pred_tag = torch.round(y_test_pred).squeeze()
+            bcm.update(y_pred_tag, yb_test)
+
+    cf_matrix = bcm.compute().detach().numpy()
+    print(f"Confusion matrix {cf_matrix}")
+    plot.save_confusion_matrix(cf_matrix, label)
     
 
     

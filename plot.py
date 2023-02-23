@@ -58,33 +58,6 @@ def save_confusion_matrix(cm_input, labels:list, title='Confusion matrix', cmap=
     save_path = os.path.join(os.getcwd(), title + ".png")
     print(f"Saved {title} graph to: {save_path}.png")
 
-    # testloader = validation_loader 
-
-    # classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
-    # #Berechnung der Confusion-Matrix
-    # confusion_matrix = np.zeros([len(classes),len(classes)], int)
-    # with torch.no_grad():
-    #     for data in testloader:
-    #         images, labels = data
-    #         dataiter = iter(testloader)
-    #         images, labels = dataiter.next()
-    #         images,labels = images.to(device),labels.to(device)
-    #         outputs = model(images)
-    #         _, predicted = torch.max(outputs.data, 1)
-    #         for i, l in enumerate(labels):
-    #             confusion_matrix[l.item(), predicted[i].item()] += 1
-    # #Erstellung des Plots
-    # fig, ax = plt.subplots(1,1,figsize=(8,6))
-    # ax.matshow(confusion_matrix, aspect='auto', vmin=0, vmax=confusion_matrix.max(), cmap=plt.get_cmap('Blues'))
-    # plt.ylabel('actual category')
-    # plt.yticks(range(10), classes)
-    # plt.xlabel('predicted category')
-    # plt.xticks(range(10), classes)
-    # #Eintragen der Häufigkeiten in die Confusion-Matrix
-    # for (i, j), z in np.ndenumerate(confusion_matrix):
-    #     ax.text(j, i, z, ha='center', va='center')
-    # plt.show()
-
 def save_classification_report(m_report:dict, title="classification_report")->None:
     save_path = os.path.join(os.getcwd(), title + ".json")
     with open(title + ".json", "w+") as f:
