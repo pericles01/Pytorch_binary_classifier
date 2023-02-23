@@ -14,7 +14,7 @@ class Binary_Classifier(nn.Module):
         self.block3 = self.conv_block(c_in=128, c_out=64, dropout=0.25, kernel_size=3)
         #self.block4 = nn.Conv2d(in_channels=64, out_channels=num_classes, kernel_size=56)
         self.maxpool = nn.MaxPool2d(kernel_size=2)
-        self.firstlayer = nn.Linear(in_features=179776, out_features=16) #44944
+        self.firstlayer = nn.Linear(in_features=576, out_features=16) #44944
         self.lastlayer = nn.Linear(in_features=16, out_features=1)
 
     def forward(self, x):

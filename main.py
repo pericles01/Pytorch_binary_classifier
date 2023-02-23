@@ -2,12 +2,13 @@ import torch
 import torch.nn as nn
 import time
 from torchvision import datasets, transforms
+from torchmetrics.classification import BinaryConfusionMatrix
 import torch.optim as optim
-from sklearn.metrics import classification_report, confusion_matrix
 from Model import Binary_Classifier
 import os
 import logging
 import plot
+import numpy as np
 
 def setup_dataset(traindir:str, validationdir:str, testdir:str=None, dim=224, batch: int=16) -> tuple:
     class_names = sorted(os.listdir(traindir))
@@ -80,11 +81,9 @@ def train(trainset, m_device, m_model, m_optimizer, m_loss, m_epoch:int, train_l
     train_loss_values.append(train_loss)    
     
     accuracy = 100 * correct / len(trainset.dataset)
-    train_acc_values.append(accuracy)
-    
-    print('Train Epoch: {}\nTrain set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(m_epoch,
-        loss, correct, len(trainset.dataset), accuracy))
+    train_acc_values.append(accuracy.item())
 
+    print(f'Train Epoch: {m_epoch}\nTrain set: Average loss: {loss}, Accuracy: {correct}/{len(trainset.dataset)} --> {round(accuracy.item(),2)}%\n')
 
 def validate(valset, m_device, m_model,m_loss, m_epoch, val_loss_values:list, val_acc_values:list)->None:
     m_model.eval()
@@ -111,13 +110,7 @@ def validate(valset, m_device, m_model,m_loss, m_epoch, val_loss_values:list, va
     accuracy = 100. * correct.to(torch.float32) / len(valset.dataset)
     val_acc_values.append(accuracy)
     
-    print('Val Epoch: {}\nValidation set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(m_epoch,
-        loss, correct, len(valset.dataset), accuracy))
-
-
-
-
-
+    print(f'Val Epoch: {m_epoch}\nValidation set: Average loss: {loss}, Accuracy: {correct}/{len(valset.dataset)} --> {round(accuracy.item(),2)}%\n')
 
 if __name__ == '__main__':
     logging.basicConfig(format='%(asctime)s %(levelname)s: %(message)s',
@@ -125,61 +118,61 @@ if __name__ == '__main__':
                             level=logging.DEBUG)
                             
     # kaggle kernels output gauravduttakiit/metal-defect-classification-using-mobilenet-v2 -p /path/to/dest
-    traindir = "../dataset/casting_data/casting_data/train"
-    validdir = "../dataset/casting_data/casting_data/test"
-    testdir = "../dataset/casting_512x512" # if None, testset = validset
+    traindir = "../casting_data/train"
+    validdir = "../casting_data/valid"
+    testdir = "../casting_512x512" # if None, testset = validset
  
     # Hyperparameters
     param_args = {'num_classes': 2,    
                     'Batch_Size': 8,
-                    'dim':224, # dim*dim matrix for resizing method
-                    'Learning_Rate': 0.001,       
-                    'Epochs': 5 } 
+                    'dim':24, # dim*dim matrix for resizing method
+                    'Learning_Rate': 0.01,       
+                    'Epochs': 15 } 
 
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     logging.info("Setup Dataset")
-    train_loader, valid_loader, test_loader, labels = setup_dataset(traindir, validdir, testdir, param_args['dim'],param_args['Batch_Size'])
+    train_loader, valid_loader, test_loader, label = setup_dataset(traindir, validdir, testdir, param_args['dim'],param_args['Batch_Size'])
 
     model = Binary_Classifier(input=3).to(device)
+    # model = torch.load("./binary_model.pth")
     print(model)
-    optimizer = optim.Adam(model.parameters(), lr=param_args['Learning_Rate'])
+    optimizer = optim.Adam(model.parameters(), lr=param_args['Learning_Rate']) 
     loss = nn.BCELoss() # BinaryCrossEntropy Loss #nn.BCEWithLogitsLoss
-    train_loss,val_loss, train_acc, val_acc = [], [], [], []
+    train_loss,val_loss, train_acc, val_acc = list(), list(), list(), list()
     start = time.time()
     logging.info("Starting training...")
     for epoch in range(param_args['Epochs']):
         train(trainset=train_loader, m_device= device, m_model=model, 
                 m_optimizer=optimizer, m_loss=loss, m_epoch=epoch,
-                train_loss_values=train_loss,train_acc_values=val_loss)
+                train_loss_values=train_loss,train_acc_values=train_acc)
         validate(valset=valid_loader, m_device=device, m_model=model,
                     m_loss=loss, m_epoch=epoch,
                     val_loss_values=val_loss,val_acc_values=val_acc)
     elapsed_time = start - time.time()
     logging.info("End of Training")
+    plot.save_model(model)
+    print(" ")
     plot.save_graph(param_args['Epochs'], train_loss, val_loss, title='Training-loss')
     plot.save_graph(param_args['Epochs'], train_acc, val_acc, title='Training-accuracy')
 
-    hours, rem = divmod(elapsed_time, 3600)
-    minutes, seconds = divmod(rem, 60)
-    logging.info("training duration: {}:{}:{:05.2f}".format(int(hours),int(minutes),seconds))
+    hours = elapsed_time // 3600
+    rest = elapsed_time % hours
+    minutes = rest // 60
+    seconds = round(rest % 60)
+    logging.info("training duration: {} sec -> {}h:{}min:{}sec".format(elapsed_time, int(hours),int(minutes),int(seconds)))
 
     # confusion matrix
-    y_pred = []
-    y_true = []
+    bcm = BinaryConfusionMatrix()
     model.eval()
     with torch.no_grad():
         for xb_test,yb_test  in test_loader:
             y_test_pred = model(xb_test.to(device))
-            y_pred_tag = torch.round(y_test_pred)
-            y_pred.append(y_pred_tag.detach().numpy())
-            y_true.append(yb_test.numpy())
-    y_pred = [a.squeeze().tolist() for a in y_pred]
-    y_true = [a.squeeze().tolist() for a in y_true]
-    cf_matrix = confusion_matrix(y_true, y_pred)
-    plot.save_confusion_matrix(cf_matrix, labels)
-    report = classification_report(y_true, y_pred, output_dict=True)
-    report['training duration'] = "{}:{}:{:05.2f}".format(int(hours),int(minutes),seconds)
-    plot.save_classification_report(report)
-    plot.save_model(model)
+            y_pred_tag = torch.round(y_test_pred).squeeze()
+            bcm.update(y_pred_tag, yb_test)
+
+    cf_matrix = bcm.compute().detach().numpy()
+    print(f"Confusion matrix {cf_matrix}")
+    plot.save_confusion_matrix(cf_matrix, label)
+    
 
     
