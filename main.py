@@ -4,8 +4,6 @@ import time
 from torchvision import datasets, transforms
 from torchmetrics.classification import BinaryConfusionMatrix
 import torch.optim as optim
-from sklearn.metrics import classification_report, confusion_matrix
-from sklearn.preprocessing import MultiLabelBinarizer
 from Model import Binary_Classifier
 import os
 import logging
