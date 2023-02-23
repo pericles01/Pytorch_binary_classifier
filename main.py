@@ -84,8 +84,6 @@ def train(trainset, m_device, m_model, m_optimizer, m_loss, m_epoch:int, train_l
     train_acc_values.append(accuracy.item())
 
     print(f'Train Epoch: {m_epoch}\nTrain set: Average loss: {loss}, Accuracy: {correct}/{len(trainset.dataset)} --> {round(accuracy.item(),2)}%\n')
-    print(f"train_acc: {train_acc_values}, lenght: {len(train_acc_values)}")
-    print(f"train_loss: {train_loss_values}, lenght: {len(train_loss_values)}\n")
 
 def validate(valset, m_device, m_model,m_loss, m_epoch, val_loss_values:list, val_acc_values:list)->None:
     m_model.eval()
@@ -113,8 +111,6 @@ def validate(valset, m_device, m_model,m_loss, m_epoch, val_loss_values:list, va
     val_acc_values.append(accuracy)
     
     print(f'Val Epoch: {m_epoch}\nValidation set: Average loss: {loss}, Accuracy: {correct}/{len(valset.dataset)} --> {round(accuracy.item(),2)}%\n')
-    print(f"val_acc: {val_acc_values}, lenght: {len(val_acc_values)}")
-    print(f"val_loss: {val_loss_values}, lenght: {len(val_loss_values)}\n") 
 
 if __name__ == '__main__':
     logging.basicConfig(format='%(asctime)s %(levelname)s: %(message)s',
