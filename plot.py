@@ -7,7 +7,7 @@ import json
 from textwrap import wrap
 import numpy as np
 
-def save_model(torch_model, path:str = "./binary_model.pth")->None:
+def save_model(torch_model, path:str = "./binary_model2.pth")->None:
     torch.save(torch_model, path)
     logging.info("model saved to {}".format(path))
 

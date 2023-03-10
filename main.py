@@ -8,7 +8,6 @@ from Model import Binary_Classifier
 import os
 import logging
 import plot
-import numpy as np
 
 def setup_dataset(traindir:str, validationdir:str, testdir:str=None, dim=224, batch: int=16) -> tuple:
     class_names = sorted(os.listdir(traindir))
@@ -118,9 +117,9 @@ if __name__ == '__main__':
                             level=logging.DEBUG)
                             
     # kaggle kernels output gauravduttakiit/metal-defect-classification-using-mobilenet-v2 -p /path/to/dest
-    traindir = "../casting_data/train"
-    validdir = "../casting_data/valid"
-    testdir = "../casting_512x512" # if None, testset = validset
+    traindir = "../dataset/casting_data/train"  
+    validdir = "../dataset/casting_data/valid"
+    testdir = "../dataset/casting_512x512" # if None, testset = validset
  
     # Hyperparameters
     param_args = {'num_classes': 2,    
@@ -148,7 +147,7 @@ if __name__ == '__main__':
         validate(valset=valid_loader, m_device=device, m_model=model,
                     m_loss=loss, m_epoch=epoch,
                     val_loss_values=val_loss,val_acc_values=val_acc)
-    elapsed_time = start - time.time()
+    elapsed_time = time.time() - start
     logging.info("End of Training")
     plot.save_model(model)
     print(" ")
@@ -156,10 +155,11 @@ if __name__ == '__main__':
     plot.save_graph(param_args['Epochs'], train_acc, val_acc, title='Training-accuracy')
 
     hours = elapsed_time // 3600
-    rest = elapsed_time % hours
+    rest = elapsed_time % hours if hours else elapsed_time
     minutes = rest // 60
     seconds = round(rest % 60)
-    logging.info("training duration: {} sec -> {}h:{}min:{}sec".format(elapsed_time, int(hours),int(minutes),int(seconds)))
+    print(" ")
+    print("training duration: {} sec -> {}h:{}min:{}sec".format(elapsed_time, int(hours),int(minutes),int(seconds)))
 
     # confusion matrix
     bcm = BinaryConfusionMatrix()
