@@ -16,6 +16,16 @@ def setup_dataset(traindir:str, validationdir:str, testdir:str=None, dim=224, ba
         assert len(
             c.split("_")[0]) == 2, "Class names must start with double digit numbers followed by an underscore"
     #transformations
+    train_transform = transforms.Compose([transforms.Resize((dim,dim)),                                
+                                        transforms.RandomHorizontalFlip(),
+                                        transforms.RandomRotation(10),
+                                        transforms.ToTensor(),                                
+                                        transforms.Normalize(
+                                            mean=[0.485, 0.456, 0.406],
+                                            std=[0.229, 0.224, 0.225],
+        ),
+                                        ])
+
     img_transforms = transforms.Compose([transforms.Resize((dim,dim)),
                                         transforms.ToTensor(),                                
                                         transforms.Normalize(
@@ -25,7 +35,7 @@ def setup_dataset(traindir:str, validationdir:str, testdir:str=None, dim=224, ba
                                         ])
                             
     #datasets
-    train_data = datasets.ImageFolder(os.path.normpath(traindir),transform=img_transforms)
+    train_data = datasets.ImageFolder(os.path.normpath(traindir),transform=train_transform)
     valid_data = datasets.ImageFolder(os.path.normpath(validationdir),transform=img_transforms)
     if testdir:
         test_data = datasets.ImageFolder(os.path.normpath(testdir),transform=img_transforms) 
@@ -151,7 +161,7 @@ if __name__ == '__main__':
     logging.info("End of Training")
     plot.save_model(model)
     print(" ")
-    plot.save_graph(param_args['Epochs'], train_loss, val_loss, title='Training-loss')
+    plot.save_graph(param_args['Epochs'], train_loss, val_loss, title='Training-loss', type="loss")
     plot.save_graph(param_args['Epochs'], train_acc, val_acc, title='Training-accuracy')
 
     hours = elapsed_time // 3600

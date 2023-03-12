@@ -7,14 +7,16 @@ import json
 from textwrap import wrap
 import numpy as np
 
-def save_model(torch_model, path:str = "./binary_model2.pth")->None:
+def save_model(torch_model, path:str = "./binary_model.pth")->None:
     torch.save(torch_model, path)
     logging.info("model saved to {}".format(path))
 
-def save_graph(epochs:int, attr:list, val_attr:list, title:str)->None:
+def save_graph(epochs:int, attr:list, val_attr:list, title:str, type:str="acc")->None:
+    label1 = "train_" + type
+    label2 = "val_" + type
     plt.figure(figsize=(5,5))
-    plt.plot(np.arange(epochs), attr, 'r')
-    plt.plot(np.arange(epochs), val_attr, 'b')
+    plt.plot(np.arange(epochs), attr, 'r', label= label1)
+    plt.plot(np.arange(epochs), val_attr, 'b', label = label2)
     plt.title(title)
     plt.xlabel('Epochs')
     plt.ylabel('Values')
